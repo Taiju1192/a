@@ -16,6 +16,7 @@ console.log("DISCORD_TOKEN:", !!process.env.DISCORD_TOKEN);
 console.log("CLIENT_ID:", process.env.CLIENT_ID || "❌ 未設定");
 console.log("GUILD_ID:", process.env.GUILD_ID || "❌ 未設定");
 
+// Discordクライアント初期化
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -32,20 +33,25 @@ const client = new Client({
   ]
 });
 
-// ✅ activePlayers 読み込み（存在しない場合はスキップ）
+// ✅ activePlayers 読み込み or 初期化
 try {
   client.activePlayers = require("./activePlayers");
+  console.log("🎵 activePlayers を読み込みました");
 } catch (e) {
-  console.warn("⚠️ activePlayers.js が見つかりません（省略可能）");
+  console.warn("⚠️ activePlayers.js が見つかりません。空のオブジェクトを初期化します");
+  client.activePlayers = {};
 }
 
 // ✅ コマンド読み込み
 client.commands = new Collection();
 const commands = [];
-const commandFiles = fs.existsSync("./commands") ? fs.readdirSync("./commands").filter(f => f.endsWith(".js")) : [];
+const commandsDir = path.join(__dirname, "commands");
+const commandFiles = fs.existsSync(commandsDir)
+  ? fs.readdirSync(commandsDir).filter(f => f.endsWith(".js"))
+  : [];
 
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
+  const command = require(path.join(commandsDir, file));
   if (command.data && command.data.name) {
     client.commands.set(command.data.name, command);
     commands.push(command.data.toJSON());
@@ -55,13 +61,6 @@ for (const file of commandFiles) {
     console.warn(`[WARN] コマンドファイル ${file} は無効な形式です`);
   }
 }
-
-// ✅ メッセージイベント（例：google-reaction）
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
-  const googleCommand = client.commands.get("google-reaction");
-  if (googleCommand?.handle) await googleCommand.handle(message, client);
-});
 
 // ✅ イベント読み込み
 const eventsPath = path.join(__dirname, "events");
@@ -77,7 +76,36 @@ if (fs.existsSync(eventsPath)) {
   }
 }
 
-// ✅ Discord ログイン
+// ✅ スラッシュコマンド登録（再登録対応）
+client.once("ready", async () => {
+  console.log(`✅ Botログイン成功: ${client.user.tag}`);
+  const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
+
+  try {
+    const existing = await rest.get(Routes.applicationCommands(process.env.CLIENT_ID));
+    for (const cmd of existing) {
+      await rest.delete(Routes.applicationCommand(process.env.CLIENT_ID, cmd.id));
+      console.log(`🗑️ コマンド削除: /${cmd.name}`);
+    }
+
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: commands }
+    );
+    console.log("🌍 グローバルスラッシュコマンドを再登録完了");
+  } catch (error) {
+    console.error("❌ スラッシュコマンド登録エラー:", error);
+  }
+
+  // ✅ アクティビティ設定（任意ファイル）
+  try {
+    require("./activity")(client);
+  } catch (e) {
+    console.warn("ℹ️ activity.js が見つかりません（省略可能）");
+  }
+});
+
+// ✅ Discordログイン
 if (!process.env.DISCORD_TOKEN) {
   console.error("❌ DISCORD_TOKEN が設定されていません。");
 } else {
@@ -89,37 +117,7 @@ if (!process.env.DISCORD_TOKEN) {
     });
 }
 
-// ✅ スラッシュコマンド登録
-client.once("ready", async () => {
-  console.log(`✅ Botログイン成功: ${client.user.tag}`);
-  const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
-
-  try {
-    // 現在のグローバルコマンド一覧を取得
-    const existing = await rest.get(Routes.applicationCommands(process.env.CLIENT_ID));
-    
-    // すべての既存コマンドを削除
-    for (const cmd of existing) {
-      await rest.delete(Routes.applicationCommand(process.env.CLIENT_ID, cmd.id));
-      console.log(`🗑️ コマンド削除: /${cmd.name}`);
-    }
-
-    // 新しいコマンドを登録
-    await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands }
-    );
-    console.log("🌍 グローバルスラッシュコマンドを再登録完了");
-  } catch (error) {
-    console.error("❌ スラッシュコマンド登録エラー:", error);
-  }
-
-  // ✅ アクティビティ設定
-  require("./activity")(client);
-});
-
-
-// ✅ Web サーバー（サイト表示）
+// ✅ Web サーバー（静的ファイル + サイト表示）
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
