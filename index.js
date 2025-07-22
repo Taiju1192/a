@@ -93,27 +93,31 @@ if (!process.env.DISCORD_TOKEN) {
 client.once("ready", async () => {
   console.log(`✅ Botログイン成功: ${client.user.tag}`);
   const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
+
   try {
-    if (process.env.GUILD_ID) {
-      await rest.put(
-        Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-        { body: commands }
-      );
-      console.log("✅ GUILD_ID に登録完了");
+    // 現在のグローバルコマンド一覧を取得
+    const existing = await rest.get(Routes.applicationCommands(process.env.CLIENT_ID));
+    
+    // すべての既存コマンドを削除
+    for (const cmd of existing) {
+      await rest.delete(Routes.applicationCommand(process.env.CLIENT_ID, cmd.id));
+      console.log(`🗑️ コマンド削除: /${cmd.name}`);
     }
-    if (process.env.GUILD_ID2) {
-      await rest.put(
-        Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID2),
-        { body: commands }
-      );
-      console.log("✅ GUILD_ID2 に登録完了");
-    }
+
+    // 新しいコマンドを登録
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: commands }
+    );
+    console.log("🌍 グローバルスラッシュコマンドを再登録完了");
   } catch (error) {
     console.error("❌ スラッシュコマンド登録エラー:", error);
   }
-// ✅ アクティビティ設定
-require("./activity")(client);
+
+  // ✅ アクティビティ設定
+  require("./activity")(client);
 });
+
 
 // ✅ Web サーバー（サイト表示）
 const app = express();
