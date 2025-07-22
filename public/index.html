@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>音楽プレイヤー（完全版）</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="https://cdn.glitch.global/1a7b0d9f-053a-4c34-817e-4c9c9da5b28a/disc_music_15034-300x300.png?v=1750483913156" />
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>🎷 音楽プレイヤー</strong></li>
+    </ul>
+    <ul>
+      <li><a href="#">ホーム</a></li>
+      <li><a href="#" role="button" id="settingsButton">設定</a></li>
+      <li><a href="#" role="button" id="requestButton">リクエスト</a></li>
+      <li><a href="#" role="button" id="themeToggle">🌃 ナイトモード</a></li>
+    </ul>
+  </nav>
+
+  <div id="scrollingTitleWrapper">
+    <div id="scrollingTitle">🎵 Now Playing: </div>
+  </div>
+
+  <main class="container">
+    <div class="grid">
+      <section>
+        <hgroup>
+          <h2>プレイヤー</h2>
+          <h3>全曲確実に再生！</h3>
+        </hgroup>
+        <audio id="player" controls></audio>
+        <div id="now-next">
+          <p><strong>🎵 再生中:</strong> <span id="nowPlaying">---</span></p>
+          <p><strong>⏭️ 次の曲:</strong> <span id="nextTrack">---</span></p>
+        </div>
+        <div class="controls">
+          <button id="skip">⏭️ 次の曲</button>
+          <button id="shuffle">🔀 シャッフル</button>
+          <button id="playMode" class="play-mode">🔁 順番再生</button>
+          <button id="repeatOneBtn">🔂 リピート1曲</button>
+          <input type="range" id="seek" value="0" min="0" max="100" />
+        </div>
+        <input type="text" id="search" placeholder="曲名を検索..." aria-label="曲名検索" />
+        <ul id="tracklist" class="tracklist"></ul>
+        <div>
+          <h4>⭐ お気に入りプレイリスト</h4>
+          <ul id="favorites"></ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="floatingSettings" class="request-float hidden">
+    <h2>🎧 設定</h2>
+    <label>音量:
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+    </label>
+    <label>再生速度:
+      <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="1">
+    </label>
+    <span id="speedLabel">速度: 1x</span><br>
+    <button id="muteBtn">🔈 ミュート</button>
+  </div>
+
+  <div id="floatingRequest" class="request-float hidden">
+    <h2>曲のリクエスト</h2>
+    <form id="requestForm">
+      <input type="text" id="requestTitle" placeholder="曲名を入力" required />
+      <button type="submit">送信</button>
+    </form>
+    <h3>リクエスト一覧</h3>
+    <ul id="requestList"></ul>
+  </div>
+
+  <!-- 🔐 プライバシーモーダル -->
+  <div id="privacyModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>プライバシーポリシー</h2>
+      <p>この音楽プレイヤーでは、お気に入り機能やリクエスト機能に localStorage やサーバーAPI を使用しています。<br>
+      保存される情報はあなたのブラウザまたはサーバー上に限定され、外部に送信されることはありません。</p>
+      <p>ご不明な点がある場合は、お問い合わせください。</p>
+    </div>
+  </div>
+
+  <footer class="container">
+    <small><a href="#">© 2025 音楽サイト</a> • <a href="#" id="privacyLink">プライバシー</a></small>
+  </footer>
+
+  <script src="tracks.js"></script>
+  <script src="script.js"></script>
+  <script>
+    const toggleBtn = document.getElementById("themeToggle");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+      document.documentElement.classList.add("dark-mode");
+    }
+    toggleBtn.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark-mode");
+      const isDark = document.documentElement.classList.contains("dark-mode");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
+
+    const privacyLink = document.getElementById("privacyLink");
+    const privacyModal = document.getElementById("privacyModal");
+
+    privacyLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      privacyModal.classList.remove("hidden");
+    });
+
+    privacyModal.addEventListener("click", (e) => {
+      if (e.target === privacyModal) {
+        privacyModal.classList.add("hidden");
+      }
+    });
+  </script>
+</body>
+</html>

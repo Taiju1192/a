@@ -1,0 +1,260 @@
+/* 🎵 music player style.css - 完全版 */
+
+body {
+background-color: #f0fdfb;
+color: #333;
+}
+
+.controls {
+display: flex;
+gap: 1rem;
+flex-wrap: wrap;
+align-items: center;
+flex-direction: row;
+}
+
+.controls button {
+white-space: nowrap;
+min-width: 120px;
+}
+
+input[type="range"] {
+width: 100%;
+min-width: 200px;
+}
+
+.tracklist li {
+margin: 0.5rem 0;
+cursor: pointer;
+}
+
+/* 再生モードボタン */
+.play-mode {
+transition: all 0.3s ease;
+}
+.play-mode.random-mode {
+background-color: #ff6b35 !important;
+color: white !important;
+}
+
+/* シャッフルボタン */
+#shuffle {
+background-color: #4CAF50;
+color: white;
+}
+#shuffle:hover {
+background-color: #45a049;
+}
+
+/* 🎵 お気に入りアイコン */
+.favorite-icon {
+font-size: 1.2rem;
+margin-left: 10px;
+cursor: pointer;
+user-select: none;
+display: inline-block;
+transition: color 0.2s ease;
+}
+.favorite-icon:hover {
+color: gold;
+}
+
+/* ⭐ お気に入り再生モードボタン */
+button.favorite-only-toggle {
+background-color: #ffc107;
+color: black;
+font-weight: bold;
+}
+button.favorite-only-toggle:hover {
+background-color: #e0a800;
+}
+
+/* 🌓 ナイトモード対応 */
+.dark-mode body {
+background-color: #121212;
+color: #f5f5f5;
+}
+
+.dark-mode #scrollingTitleWrapper {
+background-color: #1e1e1e;
+border-top-color: #333;
+border-bottom-color: #333;
+}
+
+.dark-mode #scrollingTitle {
+color: #f5f5f5;
+}
+
+.dark-mode .controls button,
+.dark-mode #shuffle,
+.dark-mode #requestList li,
+.dark-mode .request-float,
+.dark-mode #now-next {
+background-color: #2c2c2c;
+color: #f5f5f5;
+border-color: #444;
+}
+
+.dark-mode .request-float,
+.dark-mode #requestList {
+background-color: #2c2c2c;
+}
+
+.dark-mode input[type="range"] {
+background-color: #444;
+}
+
+.dark-mode .tracklist li {
+background-color: #1a1a1a;
+color: #f5f5f5;
+}
+
+.dark-mode .favorite-icon {
+color: #ccc;
+}
+.dark-mode .favorite-icon:hover {
+color: gold;
+}
+
+.dark-mode a,
+.dark-mode button {
+color: #f5f5f5;
+}
+
+.dark-mode footer {
+background-color: #111;
+color: #888;
+}
+
+/* 🎛 設定・リクエストパネル */
+.request-float {
+position: fixed;
+top: 1rem;
+right: 1rem;
+background: white;
+padding: 1rem;
+border-radius: 8px;
+box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+z-index: 999;
+width: 350px;
+max-height: 80vh;
+opacity: 0;
+transform: translateY(-20px);
+transition: opacity 0.5s ease, transform 0.5s ease;
+pointer-events: none;
+overflow-y: auto;
+}
+.request-float.show {
+opacity: 1;
+transform: translateY(0);
+pointer-events: auto;
+}
+.hidden {
+display: none;
+}
+
+#requestList {
+max-height: 200px;
+overflow-y: auto;
+border: 1px solid #ddd;
+padding: 0.5rem;
+border-radius: 4px;
+background-color: #f9f9f9;
+}
+#requestList li {
+margin: 0.5rem 0;
+padding: 0.5rem;
+background-color: white;
+border-radius: 4px;
+border: 1px solid #eee;
+}
+#requestList li button {
+margin-left: 1rem;
+background-color: #f44336;
+color: white;
+border: none;
+cursor: pointer;
+padding: 0.25rem 0.5rem;
+border-radius: 3px;
+}
+#requestList li button:hover {
+background-color: #d32f2f;
+}
+
+/* 🎵 Now Playing タイトルスクロール */
+#scrollingTitleWrapper {
+width: 100%;
+overflow: hidden;
+background-color: #fdf6e3;
+padding: 0.4rem 1rem;
+box-sizing: border-box;
+border-top: 1px solid #eee;
+border-bottom: 1px solid #eee;
+}
+#scrollingTitle {
+display: inline-block;
+white-space: nowrap;
+animation: scrollText 15s linear infinite;
+font-size: 0.9rem;
+color: #333;
+}
+@keyframes scrollText {
+from {
+transform: translateX(100%);
+}
+to {
+transform: translateX(-100%);
+}
+}
+
+/* 再生情報ボックス */
+#now-next {
+margin-top: 1rem;
+background-color: #fffde7;
+padding: 0.75rem 1rem;
+border-radius: 8px;
+border: 1px solid #ffd54f;
+}
+#now-next p {
+margin: 0.5rem 0;
+}
+
+/* 📱 モバイル対応 */
+@media (max-width: 768px) {
+.controls {
+flex-direction: column;
+gap: 0.5rem;
+}
+.controls button {
+width: 100%;
+min-width: auto;
+}
+input[type="range"] {
+min-width: auto;
+}
+}
+/* 🔐 プライバシーモーダル */
+.modal {
+position: fixed;
+inset: 0;
+background: rgba(0, 0, 0, 0.5);
+z-index: 9999;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.modal.hidden {
+display: none;
+}
+.modal-content {
+background: white;
+padding: 2rem;
+border-radius: 10px;
+width: 90%;
+max-width: 600px;
+box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+.dark-mode .modal-content {
+background: #222;
+color: #fff;
+}
