@@ -209,7 +209,7 @@ if (interaction.isButton() && interaction.customId.startsWith('ticket-close-')) 
     activeTicketChannels.delete(channelId);
   }
 }
-
+};
 
 // 📅 タイムスタンプ整形関数
 function timestampString(date = new Date()) {
