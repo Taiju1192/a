@@ -4,7 +4,7 @@ module.exports = (client) => {
   client.user.setPresence({
     activities: [
       {
-        name: "https://discord-bot-9242.onrender.com/ を監視中",
+        name: "サーバーを監視中",
         type: 3 // Watching
       }
     ],
