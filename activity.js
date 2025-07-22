@@ -11,5 +11,5 @@ module.exports = (client) => {
     status: "online"
   });
 
-  console.log("✅ アクティビティ設定完了: サイト監視中");
+  console.log("✅ アクティビティ設定完了: サーバー監視中");
 };
