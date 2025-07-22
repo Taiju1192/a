@@ -145,71 +145,71 @@ module.exports = {
       }
     }
 
-    // 🗑 チケット削除ボタン
-    if (interaction.isButton() && interaction.customId.startsWith('ticket-close-')) {
-      const channelId = interaction.channelId;
-      if (activeTicketChannels.has(channelId) || deletedChannels.has(channelId)) return;
-      activeTicketChannels.add(channelId);
+ // 🗑 チケット削除ボタン
+if (interaction.isButton() && interaction.customId.startsWith('ticket-close-')) {
+  const channelId = interaction.channelId;
+  if (activeTicketChannels.has(channelId) || deletedChannels.has(channelId)) return;
+  activeTicketChannels.add(channelId);
 
-      try {
-        if (!interaction.guild || !interaction.channel || !interaction.member) {
-          await interaction.reply({
-            content: '⚠️ この操作はサーバー内でのみ使用できます。',
-            ephemeral: true
-          }).catch(() => {});
-          return;
-        }
+  try {
+    if (!interaction.channel || !interaction.member) {
+      await interaction.reply({
+        content: '⚠️ この操作はサーバー内でのみ使用できます。',
+        ephemeral: true
+      }).catch(() => {});
+      return;
+    }
 
-        if (!interaction.deferred && !interaction.replied) {
-          await interaction.deferUpdate().catch(() => {});
-        }
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferUpdate().catch(() => {});
+    }
 
-        const [, , ticketOwnerId, adminRoleId] = interaction.customId.split('-');
-        const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
-        const hasAdminRole =
-          adminRoleId !== 'null' && interaction.member.roles.cache.has(adminRoleId);
+    const [, , ticketOwnerId, adminRoleId] = interaction.customId.split('-');
+    const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
+    const hasAdminRole =
+      adminRoleId !== 'null' && interaction.member.roles.cache.has(adminRoleId);
 
-        if (!(isAdmin || hasAdminRole)) return;
+    if (!(isAdmin || hasAdminRole)) return;
 
-        const notifyEmbed = new EmbedBuilder()
-          .setTitle('🗑 チャンネル削除')
-          .setDescription('このチャンネルは `1秒後` に削除されます。')
-          .setColor(0xffcc00)
+    const notifyEmbed = new EmbedBuilder()
+      .setTitle('🗑 チャンネル削除')
+      .setDescription('このチャンネルは `1秒後` に削除されます。')
+      .setColor(0xffcc00)
+      .setTimestamp();
+
+    await interaction.channel.send({ embeds: [notifyEmbed] });
+
+    const guildId = interaction.guild?.id; // ⚠️ 安全にアクセス
+    if (guildId === logEnabledGuildId) {
+      const logChannel = client.channels.cache.get(logChannelId);
+      if (logChannel?.isTextBased()) {
+        const closeLog = new EmbedBuilder()
+          .setTitle('❌ チケット削除')
+          .setDescription(
+            `👮 <@${interaction.user.id}> が \`${interaction.channel.name}\` を削除しました。\n📅 ${timestampString()}`
+          )
+          .setColor(0xff5555)
           .setTimestamp();
 
-        await interaction.channel.send({ embeds: [notifyEmbed] });
-
-        if (interaction.guild.id === logEnabledGuildId) {
-          const logChannel = client.channels.cache.get(logChannelId);
-          if (logChannel?.isTextBased()) {
-            const closeLog = new EmbedBuilder()
-              .setTitle('❌ チケット削除')
-              .setDescription(
-                `👮 <@${interaction.user.id}> が \`${interaction.channel.name}\` を削除しました。\n📅 ${timestampString()}`
-              )
-              .setColor(0xff5555)
-              .setTimestamp();
-
-            await logChannel.send({ embeds: [closeLog] }).catch(console.warn);
-          }
-        }
-
-        setTimeout(async () => {
-          if (!deletedChannels.has(channelId)) {
-            deletedChannels.add(channelId);
-            await interaction.channel?.delete().catch(err => {
-              console.error('❌ チャンネル削除失敗:', err.message);
-            });
-          }
-        }, 1000);
-      } catch (err) {
-        console.error('❌ チケット削除エラー:', err);
-      } finally {
-        activeTicketChannels.delete(channelId);
+        await logChannel.send({ embeds: [closeLog] }).catch(console.warn);
       }
     }
+
+    setTimeout(async () => {
+      if (!deletedChannels.has(channelId)) {
+        deletedChannels.add(channelId);
+        await interaction.channel?.delete().catch(err => {
+          console.error('❌ チャンネル削除失敗:', err.message);
+        });
+      }
+    }, 1000);
+  } catch (err) {
+    console.error('❌ チケット削除エラー:', err);
+  } finally {
+    activeTicketChannels.delete(channelId);
   }
-};
+}
+
 
 // 📅 タイムスタンプ整形関数
 function timestampString(date = new Date()) {
